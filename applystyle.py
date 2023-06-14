@@ -8,6 +8,7 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 import net
 from function import adaptive_instance_normalization, coral
+import torch.nn.parallel
 
 
 def test_transform(size, crop):
@@ -121,6 +122,11 @@ decoder.load_state_dict(torch.load(args.decoder))
 vgg.load_state_dict(torch.load(args.vgg))
 vgg = nn.Sequential(*list(vgg.children())[:31])
 
+# Check if multiple GPUs are available
+if torch.cuda.device_count() > 1:
+    vgg = torch.nn.DataParallel(vgg)
+    decoder = torch.nn.DataParallel(decoder)
+
 vgg.to(device)
 decoder.to(device)
 
@@ -152,8 +158,7 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
     output = output.cpu()
     output_resized = transforms.Resize(original_size, antialias=True)(output)
 
-    output_name = output_dir / '{:s}_stylized_{:s}{:s}'.format(
-        content_path.stem, style_path.stem, args.save_ext)
+    output_name = output_dir / f'{content_path.stem}'
     save_image(output_resized, str(output_name))
 
 
