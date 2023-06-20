@@ -158,7 +158,7 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
     output = output.cpu()
     output_resized = transforms.Resize(original_size, antialias=True)(output)
 
-    output_name = output_dir / f'{content_path.stem}'
+    output_name = output_dir / f'{content_path.stem}.{args.save_ext}'
     save_image(output_resized, str(output_name))
 
 
