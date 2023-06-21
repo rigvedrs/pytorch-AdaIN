@@ -9,6 +9,7 @@ from tqdm import tqdm
 import net
 from function import adaptive_instance_normalization, coral
 import torch.nn.parallel
+import os
 
 
 def test_transform(size, crop):
@@ -42,6 +43,8 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0,
 
 parser = argparse.ArgumentParser()
 # Basic options
+parser.add_argument('--del', type=bool, default=False,
+                    help='If you want to delete the content file')
 parser.add_argument('--content', type=str,
                     help='File path to the content image')
 parser.add_argument('--content_dir', type=str,
@@ -160,5 +163,8 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
 
     output_name = output_dir / f'{content_path.stem}.{args.save_ext}'
     save_image(output_resized, str(output_name))
+	if args.del:
+		os.remove(str(content_path))
+
 
 
