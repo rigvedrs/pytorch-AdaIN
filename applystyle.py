@@ -163,8 +163,8 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
 
     output_name = output_dir / f'{content_path.stem}.{args.save_ext}'
     save_image(output_resized, str(output_name))
-	if args.del:
-		os.remove(str(content_path))
+    if args.del:
+        os.remove(str(content_path))
 
 
 
