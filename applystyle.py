@@ -43,7 +43,7 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0,
 
 parser = argparse.ArgumentParser()
 # Basic options
-parser.add_argument('--del', type=bool, default=False,
+parser.add_argument('--delete', type=bool, default=False,
                     help='If you want to delete the content file')
 parser.add_argument('--content', type=str,
                     help='File path to the content image')
@@ -163,7 +163,7 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
 
     output_name = output_dir / f'{content_path.stem}.{args.save_ext}'
     save_image(output_resized, str(output_name))
-    if args.del:
+    if args.delete:
         os.remove(str(content_path))
 
 
