@@ -1,17 +1,16 @@
 import argparse
-import numpy as np
 from pathlib import Path
-from PIL import Image
 import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
+from torchvision.utils import save_image
 from tqdm import tqdm
 import net
 from function import adaptive_instance_normalization, coral
 import torch.nn.parallel
 import os
-import matplotlib.pyplot as plt
+
 
 def test_transform(size, crop):
     transform_list = []
@@ -23,7 +22,9 @@ def test_transform(size, crop):
     transform = transforms.Compose(transform_list)
     return transform
 
-def style_transfer(vgg, decoder, content, style, alpha=1.0, interpolation_weights=None):
+
+def style_transfer(vgg, decoder, content, style, alpha=1.0,
+                   interpolation_weights=None):
     assert (0.0 <= alpha <= 1.0)
     content_f = vgg(content)
     style_f = vgg(style)
@@ -38,6 +39,7 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0, interpolation_weight
         feat = adaptive_instance_normalization(content_f, style_f)
     feat = feat * alpha + content_f * (1 - alpha)
     return decoder(feat)
+
 
 parser = argparse.ArgumentParser()
 # Basic options
@@ -137,9 +139,11 @@ style_tf = test_transform(args.style_size, args.crop)
 # Count the number of style images
 num_style_images = len(style_paths)
 
-for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Transfer', total=len(content_paths)):
+for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Transfer', total = len(content_paths)):
     try:
-        original_size = Image.open(str(content_path)).size
+        original_size = Image.open(str(content_path)).size[::-1] 
+        # Determine the style image to use
+        #
         style_idx = idx % num_style_images
         style_path = style_paths[style_idx]
 
@@ -155,13 +159,11 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
         with torch.no_grad():
             output = style_transfer(vgg, decoder, content, style, args.alpha)
 
-        output = output.cpu().clamp(0, 1).squeeze().permute(1, 2, 0).numpy()
-
-        # Resize the output back to the original size
-        output_resized = Image.fromarray((output * 255).astype(np.uint8)).resize(original_size)
+        output = output.cpu()
+        output_resized = transforms.Resize(original_size, antialias=True)(output)
 
         output_name = output_dir / f'{content_path.stem}.{args.save_ext}'
-        output_resized.save(str(output_name))
+        save_image(output_resized, str(output_name))
 
     except Exception as e:
         print(f"Error processing file {content_path}: {e}")
@@ -169,5 +171,4 @@ for idx, content_path in tqdm(enumerate(content_paths), desc='Applying Style Tra
 
     if args.delete:
         os.remove(str(content_path))
-
 
