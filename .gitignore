@@ -6,5 +6,6 @@ experiments/*
 logs/*
 models/
 __pycache__
+testing/
 .ipynb_checkpoints/
 
